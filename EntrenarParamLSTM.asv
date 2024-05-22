@@ -1,0 +1,63 @@
+
+%% Cargar datos secuenciales
+load HumanActivityTrain
+XTrain
+
+%% Nos saltamos la parte de visualizar una secuencia de entrenamiento en una gráfica. Ver MOSTRARDATOSINICIALES.m
+
+%% Define LSTM Network Architecture
+numFeatures = 3;
+numHiddenUnits = 200;
+numClasses = 5;
+
+layers = [ ...
+    sequenceInputLayer(numFeatures)
+    lstmLayer(numHiddenUnits,'OutputMode','sequence')
+    fullyConnectedLayer(numClasses)
+    softmaxLayer
+    classificationLayer];
+
+options = trainingOptions('sgdm', ...
+    'MaxEpochs',30, ...
+    'GradientThreshold',2, ...
+    'Verbose',0, ...
+    'MiniBatchSize',64, ...
+    'Plots','training-progress');
+
+%% Descomentar si se desea llevar a cabo el entrenamiento de la red.
+
+%net = trainNetwork(XTrain,YTrain,layers,options);
+
+
+%% Descomentar si se desea utilizar una red ya entrenada.
+load RedLSTM;
+RedLSTM = net;
+
+
+%% Test LSTM Network. Para testear una red ya entrenada.
+load HumanActivityTest
+figure
+plot(XTest{1}')
+xlabel("Time Step")
+legend("Feature " + (1:numFeatures))
+title("Test Data")
+
+%Classify the test data using classify. 
+YPred = classify(net,XTest{1});
+
+%Calculate the accuracy of the predictions.
+acc = sum(YPred == YTest{1})./numel(YTest{1})
+
+%Compare the predictions with the test data by using a plot.
+figure
+plot(YPred,'.-')
+hold on
+plot(YTest{1})
+hold off
+
+xlabel("Time Step")
+ylabel("Activity")
+title("Predicted Activities")
+legend(["Predicted" "Test Data"])
+
+
